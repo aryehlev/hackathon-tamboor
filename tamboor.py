@@ -1,19 +1,4 @@
-"""
-==================
-Histogram matching
-==================
 
-This example demonstrates the feature of histogram matching. It manipulates the
-pixels of an input image so that its histogram matches the histogram of the
-reference image. If the images have multiple channels, the matching is done
-independently for each channel, as long as the number of channels is equal in
-the input image and the reference.
-
-Histogram matching can be used as a lightweight normalisation for image
-processing, such as feature matching, especially in circumstances where the
-images have been taken from different sources or in different conditions (i.e.
-lighting).
-"""
 import sys
 
 import matplotlib.pyplot as plt
@@ -25,11 +10,20 @@ from imutils.perspective import four_point_transform
 import cv2
 
 # constants
+
+# images
+ref_card = None
+input_card = None
+
+# dims
 img_height = 0
 img_width = 0
 card_height = 9
 card_width = 8
-sample_idx = (8, 4.5)
+
+# sample hole
+sample_idx = (8, 0)
+sample_color = 0
 num_of_closest_colors = 4
 
 
@@ -38,6 +32,7 @@ def sample_rgb_of_square(img, square_x, square_y):
     cube_width = img_width / card_width
     return img[int((square_x * cube_height) + cube_height / 2),
                int((square_y * cube_width) + cube_width / 2)][::-1]
+
 
 def find_color_card(image):
     # load the ArUCo dictionary, grab the ArUCo parameters, and
@@ -77,7 +72,20 @@ def find_color_card(image):
     # return the color matching card to the calling function
     return card
 
-# def find_closest_colors_on_card(img):
+
+def find_closest_colors_on_card():
+    colors_distances = {}
+    for row in range(card_height - 1):
+        for col in range(card_width):
+            current_color = sample_rgb_of_square(input_card, row, col)
+            # TODO change distance formula
+            distance = np.subtract(sample_color, current_color)
+            distance_abs = np.absolute(distance)
+            distance_num = np.sum(distance_abs)
+            colors_distances[f"{row},{col}"] = (current_color, distance_num)
+
+    return sorted(colors_distances.items(), key=lambda kv: kv[1][1])[:num_of_closest_colors]
+
 
 
 # matched = match_histograms(input_card, reference_card, multichannel=True)
@@ -136,6 +144,7 @@ if __name__ == '__main__':
     # load images
     input_img = cv2.imread("card rabash.png")
     reference_img = cv2.imread("card rabash.png")
+    # TODO add markers support
     # input_card = find_color_card(input_img)
     input_card = input_img
     # reference_card = find_color_card(reference_img)
@@ -152,8 +161,29 @@ if __name__ == '__main__':
     resized = cv2.resize(input_card, dim, interpolation=cv2.INTER_AREA)
     print('Resized Dimensions : ', resized.shape)
 
-    print(list(sample_rgb_of_square(resized, 7, 7)))
-    print(type(sample_rgb_of_square(resized, 1, 1)))
+    # get sampled color
+    sample_color = sample_rgb_of_square(input_card, sample_idx[0], sample_idx[1])
+    print('sampled color: ', sample_color)
+
+    # prepare lists for ARYEH
+    input_closest_colors = []
+    target_closest_colors = []
+    indices_and_rgbs = (find_closest_colors_on_card())
+    for index_rgb in indices_and_rgbs:
+        input_closest_colors.append(index_rgb[1][0])
+        # extract coords from key
+        x = index_rgb[0].split(sep=',')[0]
+        y = index_rgb[0].split(sep=',')[1]
+        rgb_color = sample_rgb_of_square(reference_card, int(x), int(y))
+        target_closest_colors.append(rgb_color)
+    input_closest_colors = np.array(input_closest_colors)
+    target_closest_colors = np.array(target_closest_colors)
+
+    delta = np.array([1,2,3])
+    # delta = find_color_delta(input_closest_colors, target_closest_colors, sample_color)
+
+    # calculate new color RGB
+    new_color = np.add(sample_color, delta)
 
     # show
     cv2.imshow("Input Color Card", resized)
