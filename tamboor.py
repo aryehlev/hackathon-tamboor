@@ -6,9 +6,8 @@ import numpy as np
 # from skimage import data, io
 # from skimage import exposure
 # from skimage.transform import match_histograms
-# from imutils.perspective import four_point_transform
+from imutils.perspective import four_point_transform
 import cv2
-# from imutils.perspective import four_point_transform
 
 # constants
 
@@ -25,7 +24,7 @@ card_width = 10
 # sample hole
 sample_idx = (9, 1)
 sample_color = 0
-num_of_closest_colors = 20
+num_of_closest_colors = 15
 
 
 def sample_rgb_of_square(img, square_x, square_y):
@@ -142,14 +141,30 @@ def find_closest_colors_on_card():
 # plt.show()
 
 
+def whitepatch_balancing(image, from_row, from_column, row_width, column_width):
+    ax[0].imshow(image)
+    ax[0].add_patch(Rectangle((from_column, from_row),
+                              column_width,
+                              row_width,
+                              linewidth=3,
+                              edgecolor='r', facecolor='none'));
+    ax[0].set_title('Original image')
+    image_patch = image[from_row:from_row+row_width,
+                        from_column:from_column+column_width]
+    image_max = (image*1.0 /
+                 image_patch.max(axis=(0, 1))).clip(0, 1)
+    ax[1].imshow(image_max);
+    ax[1].set_title('Whitebalanced Image')
+whitepatch_balancing(dinner, 600, 1200, 150, 150)
+
 def distance_2(a, b):
     return np.linalg.norm(a - b)
 
 
 if __name__ == '__main__':
     # load images
-    input_img = cv2.imread("noisy pic.png")
-    reference_img = cv2.imread("card.png")
+    input_img = cv2.imread("tests\\0021p-noise.png")
+    reference_img = cv2.imread("tests\\ref.png")
     # TODO add markers support
     # input_card = find_color_card(input_img)
     # reference_card = find_color_card(reference_img)
@@ -164,8 +179,9 @@ if __name__ == '__main__':
     dim = (img_width, img_height)
 
     # resize image
-    resized = cv2.resize(input_card, dim, interpolation=cv2.INTER_AREA)
-    print('Resized Dimensions : ', resized.shape)
+    input_card = cv2.resize(input_card, dim, interpolation=cv2.INTER_AREA)
+    input_card = cv2.GaussianBlur(input_card,(5,5),0)
+    print('Resized Dimensions : ', input_card.shape)
 
     # get sampled color
     sample_color = sample_rgb_of_square(input_card, sample_idx[0], sample_idx[1])
@@ -200,5 +216,5 @@ if __name__ == '__main__':
     
     closest_colours = get_closest_colours(new_color)
     print(closest_colours['RGB'])
-    cv2.imshow("Input Color Card", resized)
+    cv2.imshow("Input Color Card", input_card)
     cv2.waitKey(0)

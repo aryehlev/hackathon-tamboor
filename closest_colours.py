@@ -11,7 +11,7 @@ def get_closest_colours(guessed_colour):
 
     closest_colours = all_colours_df.sort_values(by=["distances"])
 
-    return closest_colours.head(4)
+    return closest_colours.head(10)
 
 if __name__ == '__main__':
     print(get_closest_colours([112,112,112])['RGB'])
