@@ -8,7 +8,7 @@ import numpy as np
 # from skimage.transform import match_histograms
 # from imutils.perspective import four_point_transform
 import cv2
-from imutils.perspective import four_point_transform
+# from imutils.perspective import four_point_transform
 
 # constants
 
@@ -25,7 +25,7 @@ card_width = 10
 # sample hole
 sample_idx = (9, 1)
 sample_color = 0
-num_of_closest_colors = 4
+num_of_closest_colors = 20
 
 
 def sample_rgb_of_square(img, square_x, square_y):
@@ -76,7 +76,7 @@ def find_color_card(image):
 
 def find_closest_colors_on_card():
     colors_distances = {}
-    for row in range(1, card_height - 1):
+    for row in range(1, card_height - 2):
         for col in range(1, card_width - 1):
             current_color = sample_rgb_of_square(input_card, row, col)
             # TODO change distance formula
@@ -194,13 +194,11 @@ if __name__ == '__main__':
 
     # calculate new color RGB
     new_color = np.add(sample_color, delta)
-
-    print(f"new color {new_color}")
-
-    # find closest color in tambour excel
-    # final_color = find_closest_color_on_Excel(new_color)
-    # print(final_color)
-
-    # show
+    print(new_color)
+    
+    from closest_colours import get_closest_colours
+    
+    closest_colours = get_closest_colours(new_color)
+    print(closest_colours['RGB'])
     cv2.imshow("Input Color Card", resized)
     cv2.waitKey(0)
