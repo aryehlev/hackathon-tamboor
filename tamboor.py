@@ -3,10 +3,10 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage import data, io
-from skimage import exposure
-from skimage.transform import match_histograms
-from imutils.perspective import four_point_transform
+# from skimage import data, io
+# from skimage import exposure
+# from skimage.transform import match_histograms
+# from imutils.perspective import four_point_transform
 import cv2
 
 # constants
@@ -178,13 +178,19 @@ if __name__ == '__main__':
         target_closest_colors.append(rgb_color)
     input_closest_colors = np.array(input_closest_colors)
     target_closest_colors = np.array(target_closest_colors)
-
+    print(input_closest_colors)
+    print(target_closest_colors)
+    
     delta = np.array([1,2,3])
-    # delta = find_color_delta(input_closest_colors, target_closest_colors, sample_color)
+    from get_colour import shepards_interpolation
+    delta = shepards_interpolation(input_closest_colors, target_closest_colors, sample_color)
 
     # calculate new color RGB
     new_color = np.add(sample_color, delta)
-
+    
+    from find_closest_colour import get_closest_colours
+    
+    closest_colours = get_closest_colours(new_color)
     # show
     cv2.imshow("Input Color Card", resized)
     cv2.waitKey(0)
