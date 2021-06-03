@@ -8,6 +8,7 @@ import numpy as np
 # from skimage.transform import match_histograms
 # from imutils.perspective import four_point_transform
 import cv2
+from imutils.perspective import four_point_transform
 
 # constants
 
@@ -18,11 +19,11 @@ input_card = None
 # dims
 img_height = 0
 img_width = 0
-card_height = 9
-card_width = 8
+card_height = 11
+card_width = 10
 
 # sample hole
-sample_idx = (8, 0)
+sample_idx = (9, 1)
 sample_color = 0
 num_of_closest_colors = 4
 
@@ -75,18 +76,18 @@ def find_color_card(image):
 
 def find_closest_colors_on_card():
     colors_distances = {}
-    for row in range(card_height - 1):
-        for col in range(card_width):
+    for row in range(1, card_height - 1):
+        for col in range(1, card_width - 1):
             current_color = sample_rgb_of_square(input_card, row, col)
             # TODO change distance formula
-            distance = np.subtract(sample_color, current_color)
-            distance_abs = np.absolute(distance)
-            distance_num = np.sum(distance_abs)
+            # distance = np.subtract(sample_color, current_color)
+            # distance_abs = np.absolute(distance)
+            # distance_num = np.sum(distance_abs)
+            distance_between_colors = distance_2(sample_color, current_color)
+            distance_num = np.sum(distance_between_colors)
             colors_distances[f"{row},{col}"] = (current_color, distance_num)
 
     return sorted(colors_distances.items(), key=lambda kv: kv[1][1])[:num_of_closest_colors]
-
-
 
 # matched = match_histograms(input_card, reference_card, multichannel=True)
 #
@@ -140,14 +141,19 @@ def find_closest_colors_on_card():
 # plt.tight_layout()
 # plt.show()
 
+
+def distance_2(a, b):
+    return np.linalg.norm(a - b)
+
+
 if __name__ == '__main__':
     # load images
-    input_img = cv2.imread("card rabash.png")
-    reference_img = cv2.imread("card rabash.png")
+    input_img = cv2.imread("noisy pic.png")
+    reference_img = cv2.imread("card.png")
     # TODO add markers support
     # input_card = find_color_card(input_img)
-    input_card = input_img
     # reference_card = find_color_card(reference_img)
+    input_card = input_img
     reference_card = reference_img
 
     # image resize
@@ -178,19 +184,23 @@ if __name__ == '__main__':
         target_closest_colors.append(rgb_color)
     input_closest_colors = np.array(input_closest_colors)
     target_closest_colors = np.array(target_closest_colors)
-    print(input_closest_colors)
-    print(target_closest_colors)
-    
+
+    print(f"input {input_closest_colors}")
+    print(f"target {target_closest_colors}")
+
     delta = np.array([1,2,3])
     from get_colour import shepards_interpolation
     delta = shepards_interpolation(input_closest_colors, target_closest_colors, sample_color)
 
     # calculate new color RGB
     new_color = np.add(sample_color, delta)
-    
-    from find_closest_colour import get_closest_colours
-    
-    closest_colours = get_closest_colours(new_color)
+
+    print(f"new color {new_color}")
+
+    # find closest color in tambour excel
+    # final_color = find_closest_color_on_Excel(new_color)
+    # print(final_color)
+
     # show
     cv2.imshow("Input Color Card", resized)
     cv2.waitKey(0)

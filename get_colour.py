@@ -1,5 +1,5 @@
 import numpy as np
-from math import dist
+import math
 from functools import reduce
 import sys
 import pandas as pd
@@ -10,7 +10,7 @@ def get_colour():
 
 # distance between two arrays(numpy or regular) of colours
 def distance(first_colour, second_colour):
-   return dist(first_colour, second_colour)
+   return math.dist(first_colour, second_colour)
 
 #1 / distance of two numbers(colours one channel)
 def w(colour, other_colour):
